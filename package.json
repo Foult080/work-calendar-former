@@ -1,0 +1,34 @@
+{
+  "name": "work-calendar-former",
+  "version": "0.0.1",
+  "description": "service for production calendar",
+  "main": "app.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "npx ts-node ./src/app.ts",
+    "lint": "npx eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Foult080/work-calendar-former.git"
+  },
+  "author": "foult080",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/Foult080/work-calendar-former.git/issues"
+  },
+  "homepage": "https://github.com/Foult080/work-calendar-former.git#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.2.0",
+    "eslint": "^8.57.0",
+    "globals": "^15.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.8.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.9.7"
+  }
+}
