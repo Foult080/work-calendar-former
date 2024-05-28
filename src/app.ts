@@ -1,10 +1,12 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import dotenv from 'dotenv';
-import { monthArray } from './utils';
-import { dayObject, fetchQuery } from './types';
+import { monthArray, prepareBeforeInsert } from './utils';
+import { databaseRecord, dayObject, fetchQuery } from './types';
+import sendQuery from './db';
 dotenv.config();
 
 const url: string = process.env.DAY_OFF_URL || '';
+const databaseName = process.env.DB_TABLE_NAME || '';
 
 /**
  * Метод для получения строки выходных дней календаря
@@ -24,22 +26,26 @@ const fetchDayOf = async (params: fetchQuery) => {
  * @param {number} year - год из объекта даты
  * @param {number} month - месяц из объекта даты
  * @param {Array<string>} calendarArray - строка элементов из dayOff
- * @returns {Array<object>}
+ * @returns {object}
  */
 const parseCalendarString = (year: number, month: number, calendarArray: Array<string>) => {
   // первое число месяца
   let dateCounter = 1;
-  const result: dayObject = [];
+  const days: dayObject = [];
+  const workingDays: dayObject = [];
   calendarArray.forEach((day) => {
     // дата в формате YYYY-MM-DD
     const date = new Intl.DateTimeFormat('sv-SE').format(new Date(year, month, dateCounter));
     // номер дня недели
     const dayNumber = new Date(year, month, dateCounter).getDay();
-    if (day === '1') result.push({ date, workingDay: false, dayNumber });
-    if (day === '0') result.push({ date, workingDay: true, dayNumber });
+    if (day === '1') days.push({ date, workingDay: false, dayNumber });
+    if (day === '0') {
+      workingDays.push({ date, workingDay: true, dayNumber });
+      days.push({ date, workingDay: true, dayNumber });
+    }
     dateCounter++;
   });
-  return result;
+  return { days, workingDays };
 };
 
 /**
@@ -64,16 +70,54 @@ const formCalendarObject = (calendarString: string, year: number, month: number)
   const daysInMonth = 32 - new Date(year, month, 32).getDate();
   // массив рабочих и календарных дней
   const calendarArray = calendarString.split('');
-  const days = parseCalendarString(year, month, calendarArray);
-  return { firstDate, lastDate, firstDayNumber, numberOfWeeks, daysInMonth, days };
+  const { days, workingDays } = parseCalendarString(year, month, calendarArray);
+  const dateInfo = { firstDate, firstDayNumber, lastDate, numberOfWeeks, daysInMonth };
+  return { days, workingDays, dateInfo };
 };
 
-const main = async () => {
+/**
+ * Сохранить запись в базу
+ * @param {databaseRecord} record
+ */
+const saveRecord = async (record: databaseRecord) => {
+  const { fields, values, params }: any = prepareBeforeInsert(record);
+  const sql = `insert into ${databaseName} (${fields}) values (${values})`;
+  await sendQuery(sql, params);
+};
+
+/**
+ * Сформировать производственный календарь за текущий месяц
+ */
+const getCurrentDateWorkCalendar = async () => {
   const year = new Date().getFullYear();
   const month = new Date().getMonth();
+  console.info(`Формирую производственный календарь за: ` + monthArray[month].name + ' ' + year);
   const calendarString = await fetchDayOf({ year: 2024, month: monthArray[month].monthNumber });
-  const result = formCalendarObject(calendarString, year, month);
-  console.log(result);
+  const { days, workingDays, dateInfo } = formCalendarObject(calendarString, year, month);
+  //TODO: проверка на наличие записей с этим периодом
+  await saveRecord({
+    date_year: year,
+    date_month: month,
+    date_info: JSON.stringify(dateInfo),
+    working_days: JSON.stringify(workingDays),
+    days: JSON.stringify(days)
+  });
+  console.info('Запись успешно добавлена');
+};
+
+/**
+ * Точка входа в приложение
+ */
+const main = async () => {
+  try {
+    console.info('Начало работы');
+    await getCurrentDateWorkCalendar();
+    console.info('Завершение работы');
+    process.exit(0);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 };
 
 main();

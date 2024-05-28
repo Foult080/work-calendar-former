@@ -13,3 +13,21 @@ export const monthArray = [
   { name: 'Ноябрь', monthNumber: '11' },
   { name: 'Декабрь', monthNumber: '12' }
 ];
+
+/**
+ * Тип для результата выполнения функции подготовки объекта для вставки
+ */
+export type preparedObject = { fields: string; values: string[]; params: any[] };
+
+/**
+ * Метод для формирования строки вставки в базу
+ * @param {object} data - запись для вставки
+ * @returns {preparedObject}
+ */
+export const prepareBeforeInsert = (data: any): object => {
+  const fields = Object.keys(data).join(', ');
+  const params = Object.values(data) as any[];
+  const values: string[] = [];
+  params.forEach(() => values.push('?'));
+  return { fields, values, params } as preparedObject;
+};
