@@ -88,7 +88,7 @@ const saveRecord = async (record: databaseRecord) => {
 /**
  * Сформировать производственный календарь за текущий месяц
  */
-const getCurrentDateWorkCalendar = async () => {
+export const getCurrentDateWorkCalendar = async () => {
   const year = new Date().getFullYear();
   const month = new Date().getMonth();
   console.info(`Формирую производственный календарь за: ` + monthArray[month].name + ' ' + year);
@@ -105,13 +105,37 @@ const getCurrentDateWorkCalendar = async () => {
   console.info('Запись успешно добавлена');
 };
 
+export const getYearCalendar = async () => {
+  const year = new Date().getFullYear();
+  console.info('Формирую календарь за: ' + year);
+  for await (const month of monthArray) {
+    const { name, monthNumber } = month;
+    const monthIndex = monthArray.findIndex((el) => el.name === name);
+    console.log('Форминую запись за месяц:' + name);
+    const calendarString = await fetchDayOf({ year: 2024, month: monthNumber });
+    const { days, workingDays, dateInfo } = formCalendarObject(calendarString, year, monthIndex);
+    //TODO: проверка на наличие записей с этим периодом
+    await saveRecord({
+      date_year: year,
+      date_month: monthIndex,
+      date_info: JSON.stringify(dateInfo),
+      working_days: JSON.stringify(workingDays),
+      days: JSON.stringify(days)
+    });
+    console.info('Запись успешно добавлена');
+  }
+};
+
 /**
  * Точка входа в приложение
  */
 const main = async () => {
   try {
     console.info('Начало работы');
-    await getCurrentDateWorkCalendar();
+    //! сформировать календарь за текущий период
+    //await getCurrentDateWorkCalendar();
+    //! сформировать производственный календарь за год
+    await getYearCalendar();
     console.info('Завершение работы');
     process.exit(0);
   } catch (error) {
