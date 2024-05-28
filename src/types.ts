@@ -1,7 +1,7 @@
 /**
  * Тип для объекта даты внутри массива
  */
-export type dayObject = { date: string; workingDay: boolean; dayNumber: number }[];
+export type dayObject = { date: string; workingDay: boolean; dayNumber: number; workDate: number | null }[];
 
 /**
  * Тип для query параметров запроса

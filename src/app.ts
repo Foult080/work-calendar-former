@@ -31,6 +31,7 @@ const fetchDayOf = async (params: fetchQuery) => {
 const parseCalendarString = (year: number, month: number, calendarArray: Array<string>) => {
   // первое число месяца
   let dateCounter = 1;
+  let workDate = 1;
   const days: dayObject = [];
   const workingDays: dayObject = [];
   calendarArray.forEach((day) => {
@@ -38,10 +39,11 @@ const parseCalendarString = (year: number, month: number, calendarArray: Array<s
     const date = new Intl.DateTimeFormat('sv-SE').format(new Date(year, month, dateCounter));
     // номер дня недели
     const dayNumber = new Date(year, month, dateCounter).getDay();
-    if (day === '1') days.push({ date, workingDay: false, dayNumber });
+    if (day === '1') days.push({ date, workingDay: false, dayNumber, workDate: null });
     if (day === '0') {
-      workingDays.push({ date, workingDay: true, dayNumber });
-      days.push({ date, workingDay: true, dayNumber });
+      workingDays.push({ date, workingDay: true, dayNumber, workDate });
+      days.push({ date, workingDay: true, dayNumber, workDate });
+      workDate++;
     }
     dateCounter++;
   });
