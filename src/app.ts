@@ -38,7 +38,9 @@ const parseCalendarString = (year: number, month: number, calendarArray: Array<s
     // дата в формате YYYY-MM-DD
     const date = new Intl.DateTimeFormat('sv-SE').format(new Date(year, month, dateCounter));
     // номер дня недели
-    const dayNumber = new Date(year, month, dateCounter).getDay();
+    let dayNumber = new Date(year, month, dateCounter).getDay();
+    //! если первый день недели 0 (ВСК) то насильно пихаем ему 6(ВСК по русски)
+    dayNumber = dayNumber === 0 ? 6 : dayNumber - 1;
     if (day === '1') days.push({ date, workingDay: false, dayNumber, workDate: null });
     if (day === '0') {
       workingDays.push({ date, workingDay: true, dayNumber, workDate });
